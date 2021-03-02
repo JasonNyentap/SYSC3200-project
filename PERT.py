@@ -1,7 +1,7 @@
 # Represents an activity in a PERT diagram
 class Activity:
     def __init__(self, name, duration, predecessor, successor):
-        self.name = name # Name of this acitivity, or nothing if it is a dummy
+        self.name = name # Name of this activity, or nothing if it is a dummy
         self.duration = duration # Time to complete this activity
         self.predecessor = predecessor # Milestone this activity starts at
         self.successor = successor # Milestone this activity ends at
@@ -9,9 +9,9 @@ class Activity:
         
     def __str__(self):
         if(self.name == ''):
-            return 'Dummy'
+            return 'Dummy [S: ' + str(self.slack) + ']'
         else:
-            return self.name + ', Duration: ' + str(self.duration)
+            return self.name + ' [D: ' + str(self.duration) + ', S: ' + str(self.slack) + ']'
 
 # Represents a milestone in a PERT diagram
 class Milestone:
@@ -23,7 +23,7 @@ class Milestone:
         self.slack = 0 # Slack time for this milestone
         
     def __str__(self):
-        res = 'Milestone:\n'
+        res = 'Milestone [TE: ' + str(self.earliest) + ', TL:' + str(self.latest) + ', S:' + str(self.slack) + ']\n'
         
         res += '    Prerequisites:\n'
         if(len(self.prerequisites) > 0):
@@ -152,6 +152,7 @@ def load_problem(filename):
                     # Merge the dependant activities of the two milestones
                     for dependant in equivalent.dependants:
                         if(dependant not in milestone.dependants):
+                            dependant.predecessor = milestone
                             milestone.dependants.append(dependant)
                   
                     # Remove dummy activities leading to the milestone that will be removed
@@ -199,7 +200,56 @@ def load_problem(filename):
             collapsed = True
             milestones.remove(remove)
     
-    return milestones                
+    return milestones
 
-for item in load_problem('Problems/Lab6_Excalibur.txt'):
+# Calculates the TL, TE, and slack for milestones, as well as slack for activities
+def calc_times(milestones):
+    # Calculate the TE for each milestone
+    solved = []
+    while(len(solved) != len(milestones)):
+        for milestone in milestones:
+            if(milestone not in solved):
+                unsolved_prerequisites = False
+                te = 0
+                for prerequisite in milestone.prerequisites:
+                    if(prerequisite.predecessor in solved):
+                        te = max(te, prerequisite.predecessor.earliest + prerequisite.duration)
+                    else:
+                        unsolved_prerequisites = True
+                        break
+                    
+                if(not unsolved_prerequisites):
+                    milestone.earliest = te
+                    solved.append(milestone)
+                    
+    # Calculate the TL for each milestone
+    solved = []
+    while(len(solved) != len(milestones)):
+        for milestone in milestones:
+            if(milestone not in solved):
+                unsolved_dependants = False
+                tl = float('inf')
+                
+                if(len(milestone.dependants) == 0):
+                    tl = milestone.earliest
+                else:
+                    for dependant in milestone.dependants:
+                        if(dependant.successor in solved):
+                            tl = min(tl, dependant.successor.latest - dependant.duration)
+                        else:
+                            unsolved_dependants = True
+                            
+                if(not unsolved_dependants):
+                    milestone.latest = tl
+                    solved.append(milestone)
+                            
+    # Calculate the slack for each milestone, and activity 
+    for milestone in milestones:
+        milestone.slack = milestone.latest - milestone.earliest
+        for activity in milestone.dependants:
+            activity.slack = activity.successor.latest - activity.predecessor.earliest - activity.duration
+
+data = load_problem('Problems/Lab6_Excalibur.txt')
+calc_times(data)
+for item in data:
     print(str(item))
