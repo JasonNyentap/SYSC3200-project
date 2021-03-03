@@ -200,6 +200,7 @@ def load_problem(filename):
             collapsed = True
             milestones.remove(remove)
     
+    calc_times(milestones)
     return milestones
 
 # Calculates the TL, TE, and slack for milestones, as well as slack for activities
@@ -249,7 +250,25 @@ def calc_times(milestones):
         for activity in milestone.dependants:
             activity.slack = activity.successor.latest - activity.predecessor.earliest - activity.duration
 
+# Returns a list of activities on the critical path
+# The milestones given as input must have had their parameters calculated beforehand by calc_times()
+def critical_path(milestones):
+    critical = []
+    for milestone in milestones:
+        for dependant in milestone.dependants:
+            if(dependant.slack == 0 and dependant.predecessor.slack == 0 and dependant.successor.slack == 0):
+                if(dependant.name != ''):
+                    critical.append(dependant)
+                
+    return critical
+
+# The code below here is for testing
 data = load_problem('Problems/Lab6_Excalibur.txt')
-calc_times(data)
-for item in data:
-    print(str(item))
+
+print('[ Problem milestones and activites ]')
+for milestone in data:
+    print(str(milestone))
+
+print('[ Critical path activities ]')    
+for activity in critical_path(data):
+    print(str(activity))
