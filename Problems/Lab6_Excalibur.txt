@@ -1,15 +1,15 @@
 !Comments here are the same as LINDO
-!TASK, DURATION, PREREQUISITE_1, ... , PREREQUISITE_n
+!TASK, DURATION, LABOUR, PREREQUISITE_1, ... , PREREQUISITE_n
 
-A, 4
-B, 7, A
-C, 4, B
-D, 3, B
-E, 6, C
-F, 2, D
-G, 1, E, D
-H, 4, F
-I, 4, G, H
-J, 2, G
-K, 4, H
-L, 4, J, I, K
+A, 4, 0
+B, 7, 0, A
+C, 4, 0, B
+D, 3, 0, B
+E, 6, 0, C
+F, 2, 0, D
+G, 1, 0, E, D
+H, 4, 0, F
+I, 4, 0, G, H
+J, 2, 0, G
+K, 4, 0, H
+L, 4, 0, J, I, K

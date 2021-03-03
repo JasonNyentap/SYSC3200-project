@@ -1,17 +1,26 @@
 # Represents an activity in a PERT diagram
 class Activity:
-    def __init__(self, name, duration, predecessor, successor):
+    def __init__(self, name, duration, labour, predecessor, successor):
         self.name = name # Name of this activity, or nothing if it is a dummy
         self.duration = duration # Time to complete this activity
         self.predecessor = predecessor # Milestone this activity starts at
         self.successor = successor # Milestone this activity ends at
-        self.slack = 0 # Slack time for this activity
+        self.slack = 0 # Total slack time for this activity
+        self.free_slack = 0 # Free slack time for this activity
+        self.labour = labour # Amount of labour needed to complete this activity
+        self.delay = 0 # How long to wait before starting the activity (within free_slack)
         
     def __str__(self):
         if(self.name == ''):
             return 'Dummy [S: ' + str(self.slack) + ']'
         else:
-            return self.name + ' [D: ' + str(self.duration) + ', S: ' + str(self.slack) + ']'
+            res = self.name
+            res += ' [D: ' + str(self.duration)
+            res += ', L: ' + str(self.labour)
+            res += ', S: ' + str(self.slack)
+            res += ', FS: ' + str(self.free_slack)
+            res += ']'
+            return res
 
 # Represents a milestone in a PERT diagram
 class Milestone:
@@ -85,61 +94,66 @@ def load_problem(filename):
                 tokens = [x.strip() for x in line.strip().split(',')]
                 
                 # Check that the activity definition is valid
-                if(len(tokens) < 2):
+                if(len(tokens) < 3):
                     print('Error on line ' + str(lineno) + ': Invalid activity definition \"' + line.strip() + '\"')
                     return False
                     
                 # Check that the duration is a valid number
-                try:
-                    activity_duration = int(tokens[1])
-                    if(activity_duration < 0):
-                        print('Error on line ' + str(lineno) + ': Activity duration less than 0')
-                        return False
-                except ValueError:
+                if(not tokens[1].isnumeric()):
                     print('Error on line ' + str(lineno) + ': Invalid activity duration \"' + tokens[1] + '\"')
                     return False
-                    
-                else:
-                    # Check that activity does not exist already
+                elif(int(tokens[1]) < 0):
+                    print('Error on line ' + str(lineno) + ': Activity duration less than 0')
+                    return False
+                
+                # Check that the required labour is a valid number
+                if(not tokens[2].isnumeric()):
+                    print('Error on line ' + str(lineno) + ': Invalid labour requirement \"' + tokens[2] + '\"')
+                    return False
+                elif(int(tokens[2]) < 0):
+                    print('Error on line ' + str(lineno) + ': Labour requirement less than 0')
+                    return False
+                
+                # Check that activity does not exist already
+                for activity in activities:
+                    if(activity.name == tokens[0]):
+                        print('Error on line ' + str(lineno) + ': Activity redefined \"' + line.strip() + '\"')
+                        return False
+                
+                # Make a list of prerequisites for this activity, and make sure they have been defined previously
+                prerequisites = []
+                for i in range(3, len(tokens)):
+                    prerequisites.append(tokens[i])
+                    found = False
                     for activity in activities:
-                        if(activity.name == tokens[0]):
-                            print('Error on line ' + str(lineno) + ': Activity redefined \"' + line.strip() + '\"')
-                            return False
-                    
-                    # Make a list of prerequisites for this activity, and make sure they have been defined previously
-                    prerequisites = []
-                    for i in range(2, len(tokens)):
-                        prerequisites.append(tokens[i])
-                        found = False
-                        for activity in activities:
-                            if(activity.name == tokens[i]):
-                                found = True
-                                break
-                                
-                        if(not found):
-                            print('Error on line ' + str(lineno) + ': Prerequisite undefined \"' + tokens[i] + '\"')
-                            return False
-                    
-                    # Create the activity and a new milestones to the start and finish of it
-                    activity_start = Milestone()
-                    activity_end = Milestone()
-                    activity = Activity(tokens[0], int(tokens[1]), activity_start, activity_end)
-                    activity_start.dependants.append(activity)
-                    activity_end.prerequisites.append(activity)
-                    activities.append(activity)
-                    
-                    # Find the prerequite milestones for this activity, and link them with dummy activites to activity_start
-                    for prerequisite in prerequisites:
-                        found = False
-                        for milestone in milestones:
-                            if(len(milestone.prerequisites) == 1 and milestone.prerequisites[0].name == prerequisite):
-                                dummy = Activity('', 0, milestone, activity_start)
-                                milestone.dependants.append(dummy)
-                                activity_start.prerequisites.append(dummy)
-                                found = True
-                    
-                    milestones.append(activity_start)
-                    milestones.append(activity_end)
+                        if(activity.name == tokens[i]):
+                            found = True
+                            break
+                            
+                    if(not found):
+                        print('Error on line ' + str(lineno) + ': Prerequisite undefined \"' + tokens[i] + '\"')
+                        return False
+                
+                # Create the activity and add new milestones to the start and finish of it
+                activity_start = Milestone()
+                activity_end = Milestone()
+                activity = Activity(tokens[0], int(tokens[1]), int(tokens[2]), activity_start, activity_end)
+                activity_start.dependants.append(activity)
+                activity_end.prerequisites.append(activity)
+                activities.append(activity)
+                
+                # Find the prerequite milestones for this activity, and link them with dummy activites to activity_start
+                for prerequisite in prerequisites:
+                    found = False
+                    for milestone in milestones:
+                        if(len(milestone.prerequisites) == 1 and milestone.prerequisites[0].name == prerequisite):
+                            dummy = Activity('', 0, 0, milestone, activity_start)
+                            milestone.dependants.append(dummy)
+                            activity_start.prerequisites.append(dummy)
+                            found = True
+                
+                milestones.append(activity_start)
+                milestones.append(activity_end)
      
     # Merge all milestones with the exact same prerequisites together
     merged = True
@@ -203,7 +217,7 @@ def load_problem(filename):
     calc_times(milestones)
     return milestones
 
-# Calculates the TL, TE, and slack for milestones, as well as slack for activities
+# Calculates the TL, TE, and slack for milestones, as well as slack and free slack for activities
 def calc_times(milestones):
     # Calculate the TE for each milestone
     solved = []
@@ -249,6 +263,26 @@ def calc_times(milestones):
         milestone.slack = milestone.latest - milestone.earliest
         for activity in milestone.dependants:
             activity.slack = activity.successor.latest - activity.predecessor.earliest - activity.duration
+            activity.free_slack = activity.successor.earliest - activity.predecessor.earliest - activity.duration
+
+def calc_labour(activities):
+    time = 0
+    done = False
+    worst_labour = 0
+    while(not done):
+        done = True
+        labour = 0
+        for activity in activites:
+            started = activity.predecessor.earliest + activity.delay
+            ended = started + activity.duration
+            if(time >= started and time < ended):
+                done = False
+                labour += activity.labour
+        
+        worst_labour = max(worst_labour, labour)
+        time += 1
+    
+    return worst_labour
 
 # Returns a list of activities on the critical path
 # The milestones given as input must have had their parameters calculated beforehand by calc_times()
@@ -263,12 +297,22 @@ def critical_path(milestones):
     return critical
 
 # The code below here is for testing
-data = load_problem('Problems/Lab6_Excalibur.txt')
+data = load_problem('Problems/Lab6_Daycare.txt')
+if(data == False):
+    print('An error occured while loading the problem')
+else:
+    print('[ Problem milestones and activites ]')
+    for milestone in data:
+        print(str(milestone))
 
-print('[ Problem milestones and activites ]')
-for milestone in data:
-    print(str(milestone))
+    print('[ Critical path activities ]')    
+    for activity in critical_path(data):
+        print(str(activity))
+        
+    activites = []
+    for milestone in data:
+        for dependant in milestone.dependants:
+            activites.append(dependant)
 
-print('[ Critical path activities ]')    
-for activity in critical_path(data):
-    print(str(activity))
+    print('\n[ Labour requirements with earliest time scheduling ]')        
+    print(calc_labour(activites))
