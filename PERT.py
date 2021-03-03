@@ -142,7 +142,7 @@ def load_problem(filename):
                 activity_end.prerequisites.append(activity)
                 activities.append(activity)
                 
-                # Find the prerequite milestones for this activity, and link them with dummy activites to activity_start
+                # Find the prerequite milestones for this activity, and link them with dummy activities to activity_start
                 for prerequisite in prerequisites:
                     found = False
                     for milestone in milestones:
@@ -265,25 +265,6 @@ def calc_times(milestones):
             activity.slack = activity.successor.latest - activity.predecessor.earliest - activity.duration
             activity.free_slack = activity.successor.earliest - activity.predecessor.earliest - activity.duration
 
-def calc_labour(activities):
-    time = 0
-    done = False
-    worst_labour = 0
-    while(not done):
-        done = True
-        labour = 0
-        for activity in activites:
-            started = activity.predecessor.earliest + activity.delay
-            ended = started + activity.duration
-            if(time >= started and time < ended):
-                done = False
-                labour += activity.labour
-        
-        worst_labour = max(worst_labour, labour)
-        time += 1
-    
-    return worst_labour
-
 # Returns a list of activities on the critical path
 # The milestones given as input must have had their parameters calculated beforehand by calc_times()
 def critical_path(milestones):
@@ -296,12 +277,92 @@ def critical_path(milestones):
                 
     return critical
 
+# Calculate the maximum required labour for a list of activities
+def calc_labour(activities):
+    time = 0
+    done = False
+    worst_labour = 0
+    while(not done):
+        done = True
+        labour = 0
+        for activity in activities:
+            started = activity.predecessor.earliest + activity.delay
+            ended = started + activity.duration
+            if(time >= started and time < ended):
+                done = False
+                labour += activity.labour
+        
+        worst_labour = max(worst_labour, labour)
+        time += 1
+    
+    return worst_labour
+
+# Finds all schedules for activities that will result in the lowest peak resource usage 
+def resource_level(milestones):
+    # Get the the list of activities in the diagram, and set their delay to 0 (earliest schedule)
+    activities = []
+    slack_activities = []
+    for milestone in milestones:
+        for dependant in milestone.dependants:
+            if(dependant.name != ''):
+                dependant.delay = 0
+                activities.append(dependant)
+                if(dependant.slack != 0):
+                    slack_activities.append(dependant)
+        
+    # Exhaustively search for the lowest resource schedule by incrementing the delay time for each activity between 0 and free_slack inclusive
+    lowest_resource = float('inf')
+    schedules = []
+    while(True):
+        to_increment = 0
+        while(to_increment < len(slack_activities) and slack_activities[to_increment].delay == slack_activities[to_increment].slack):
+            slack_activities[to_increment].delay = 0
+            to_increment += 1
+    
+        if(to_increment < len(slack_activities)):
+            slack_activities[to_increment].delay = (slack_activities[to_increment].delay + 1) % (slack_activities[to_increment].slack + 1)
+            to_increment = 0
+            
+            # Check that this schedule is valid
+            valid = True
+            for milestone in milestones:
+                prerequisite_finish = 0
+                dependant_start = float('inf')
+                for prerequisite in milestone.prerequisites:
+                    if(prerequisite.name != ''):
+                        prerequisite_finish = max(prerequisite_finish, prerequisite.predecessor.earliest + prerequisite.delay + prerequisite.duration)
+                for dependant in milestone.dependants:
+                    if(dependant.name != ''):
+                        dependant_start = min(dependant_start, milestone.earliest + dependant.delay)
+                    
+                if(dependant_start < prerequisite_finish):
+                    valid = False
+                    break
+            
+            if(valid):
+                resources = calc_labour(activities)
+            else:
+                resources = float('inf')
+            
+            if(resources < lowest_resource):
+                lowest_resource = resources
+                schedules = []
+            
+            if(resources == lowest_resource):
+                activity_schedule = []
+                for activity in activities:
+                    activity_schedule.append((activity.name, activity.predecessor.earliest + activity.delay))
+                    
+                schedules.append(activity_schedule)
+        else:
+            return (lowest_resource, schedules)
+
 # The code below here is for testing
-data = load_problem('Problems/Lab6_Daycare.txt')
+data = load_problem('Problems/Lab6_Excalibur.txt')
 if(data == False):
     print('An error occured while loading the problem')
 else:
-    print('[ Problem milestones and activites ]')
+    print('[ Problem milestones and activities ]')
     for milestone in data:
         print(str(milestone))
 
@@ -309,10 +370,10 @@ else:
     for activity in critical_path(data):
         print(str(activity))
         
-    activites = []
-    for milestone in data:
-        for dependant in milestone.dependants:
-            activites.append(dependant)
-
-    print('\n[ Labour requirements with earliest time scheduling ]')        
-    print(calc_labour(activites))
+    print('\n[ Labour requirements ]')        
+    lowest, schedules = resource_level(data)
+    print('Lowest possible peak requirement: ' + str(lowest))
+    print('Schedules achieving lowest requirement (Activity, Start time):')
+    for schedule in schedules:
+        print(schedule)
+    
