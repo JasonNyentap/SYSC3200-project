@@ -1,0 +1,15 @@
+AB, 2, 2
+BC, 4, 2, AB
+CD, 4, 2, BC
+DE, 3, 4, CD
+DO, 7, 4, CD
+EF, 1, 1, DE
+EG, 2, 2, DE
+FG, 2, 1, EF
+DI, 1, 3, CD
+IJ, 3, 2, DI
+GL, 1, 2, EG, FG
+LO, 2, 2, GL
+LN, 2, 1, GL
+JO, 2, 2, IJ
+NO, 2, 1, LN

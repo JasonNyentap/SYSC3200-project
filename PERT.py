@@ -162,6 +162,7 @@ def load_problem(filename):
         merged = False
         for milestone in milestones:
             for equivalent in milestones:
+                # Check if milestone and equivalent can be merged
                 if(can_merge_milestones(milestone, equivalent)):
                     # Merge the dependant activities of the two milestones
                     for dependant in equivalent.dependants:
@@ -177,7 +178,17 @@ def load_problem(filename):
                                 remaining_dependants.append(activity)
                         prerequisite.predecessor.dependants = remaining_dependants
                     remove = equivalent
-                    break      
+                    break 
+                # Check if milestone and equivalent are both end points, if they are merge them
+                elif(milestone != equivalent and len(milestone.dependants) == 0 and len(equivalent.dependants) == 0):
+                    # Redirect the prerequisite activities of equivalent to milestone and add them to milestone
+                    for prerequisite in equivalent.prerequisites:
+                        milestone.prerequisites.append(prerequisite)
+                        prerequisite.successor = milestone
+                    
+                    # Get rid of equivalent                  
+                    remove = equivalent
+                    break 
             
             if(remove != None):
                 break      
@@ -358,7 +369,7 @@ def resource_level(milestones):
             return (lowest_resource, schedules)
 
 # The code below here is for testing
-data = load_problem('Problems/Lab6_Excalibur.txt')
+data = load_problem('Problems/Assignment3.txt')
 if(data == False):
     print('An error occured while loading the problem')
 else:

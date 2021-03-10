@@ -134,9 +134,8 @@ def load_problem(filename):
                 milestones.append(activity_end)
 
                 # end of for loop (parsing lines)
-     
-
-     
+    
+    
     # Merge all milestones with the exact same prerequisites together
     merged = True
     while(merged):
@@ -144,7 +143,8 @@ def load_problem(filename):
         merged = False
         for milestone in milestones:
             for equivalent in milestones:
-                if(milestone.can_merge_milestones(equivalent)):
+                # Check if milestone and equivalent can be merged
+                if(can_merge_milestones(milestone, equivalent)):
                     # Merge the dependant activities of the two milestones
                     for dependant in equivalent.dependants:
                         if(dependant not in milestone.dependants):
@@ -159,7 +159,17 @@ def load_problem(filename):
                                 remaining_dependants.append(activity)
                         prerequisite.predecessor.dependants = remaining_dependants
                     remove = equivalent
-                    break      
+                    break 
+                # Check if milestone and equivalent are both end points, if they are merge them
+                elif(milestone != equivalent and len(milestone.dependants) == 0 and len(equivalent.dependants) == 0):
+                    # Redirect the prerequisite activities of equivalent to milestone and add them to milestone
+                    for prerequisite in equivalent.prerequisites:
+                        milestone.prerequisites.append(prerequisite)
+                        prerequisite.successor = milestone
+                    
+                    # Get rid of equivalent                  
+                    remove = equivalent
+                    break 
             
             if(remove != None):
                 break      
