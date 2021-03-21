@@ -116,9 +116,10 @@ def addActivity(taskname, duration, labour, predecessors):
     pass
 
 
-test_activity = createActivity('A', 11, 1, [])
+test_activity = addActivity('A', 11, 1, [])
 
 
 tkapp.mainloop()
 
 # end
+
