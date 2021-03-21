@@ -78,8 +78,10 @@ labTf = Entry(tkapp, textvariable=lab).place(x=175, y=150)
 
 
 # prereqs label
-prereqs_label = Label(tkapp, text='Prerequisites', bg='grey').place(relx=0.5, y=200)
+prereqs_label = Label(tkapp, text='Prerequisites', bg='grey').place(x=1, y=200)
 # input checkboxes of activities currently in project
+prereqs_inputs = Label(tkapp, text='A [] B[] C[]', bg='grey').place(x=175, y=200)
+
 
 
 # create an activity obj,
@@ -88,8 +90,8 @@ prereqs_label = Label(tkapp, text='Prerequisites', bg='grey').place(relx=0.5, y=
 
 
 # Add activity BUTTON
-#add_activity_button = Button(tk, text=' + ', width=1, height=1, bg='grey23', fg='wheat1',
-                             #highlightbackground='green', command=createActivity).place(relx=0.5, y=300)
+add_activity_button = Button(tkapp, text=' + add activity ', width=3, height=1, bg='grey23', fg='wheat1',
+                             highlightbackground='green').place(x=250,y=330)
 
 
 
@@ -99,8 +101,8 @@ prereqs_label = Label(tkapp, text='Prerequisites', bg='grey').place(relx=0.5, y=
 # BUTTON
 #
 ######################
-evaluate_button = Button(tkapp, height='2', text='PERT & CRM', bg='black',
-                         fg='white', highlightbackground='gold').place(x=40, y=300)
+evaluate_button = Button(tkapp, height='2', text='PERT & CRM', bg='gold',
+                         fg='white', highlightbackground='black').place(x=250, y=300)
 
 
 # Add activity to list
@@ -110,17 +112,8 @@ x0 = 200
 y0 = 200
 
 
-def createActivity(taskname, duration, labour, predecessors):
-
-    # store list of prerequisites
-    prereqs = predecessors
-
-    label_str = taskname + ', dur: ' + str(duration)+' labour:', str(labour)
-
-    task_label = Label(tkapp, text=label_str, bg='grey24',
-                       highlightbackground='coral').place(x=x0, y=y0)
-
-    #return newActivity = Activity(taskname, duration, labour, prereqs)
+def addActivity(taskname, duration, labour, predecessors):
+    pass
 
 
 test_activity = createActivity('A', 11, 1, [])
