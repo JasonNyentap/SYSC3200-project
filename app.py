@@ -204,7 +204,7 @@ def load_daycare():
     
     Label(newWindow ,
         text ='Schedules achieving lowest requirement (Activity, Start time):'
-            + 'SHOW critical path').pack()
+            + 'VARIABLE lowest from PERTscheduler').pack()
 ###########
 #
 # Load Excalibur
