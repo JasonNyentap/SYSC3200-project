@@ -61,11 +61,14 @@ lab = IntVar(tkapp)
 #######
 class Checkbar(Frame):
    def __init__(self, parent=None, picks=[], side=LEFT, anchor=W):
+      
       Frame.__init__(self, parent)
+      
       self.vars = []
+      
       for pick in picks:
          var = IntVar()
-         chk = Checkbutton(self, text=pick, variable=var, fg='black')
+         chk = Checkbutton(self, text=pick, variable=var, bg='black')
          chk.pack(side=side, anchor=anchor, expand=YES)
          self.vars.append(var)
    def state(self):
@@ -101,6 +104,7 @@ def add_activity():
     # Add created activity to list 
     activities_input.append(activity_prep)
 
+    print('button pressed\n')
     print('NEW activity: '+name.get()+' '+str(dur.get())+' '+str(lab.get())+'\n')
 
 ##########
@@ -180,7 +184,7 @@ prereqs_label = Label(tkapp, text='Prerequisites:', bg='grey').place(x=1, y=200)
 
 
 #prereqs_inputs = Listbox(tkapp, listvariable=activities_input).
-prereq_box = Checkbar(tkapp, ['A', 'B', 'some-name', 'example']).place(x=175, y=200)
+prereq_box = Checkbar(tkapp, ['A', 'B']).place(x=175, y=200)
 
 
 
