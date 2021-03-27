@@ -19,9 +19,29 @@ from tkinter import *
 # Import node classes
 from PERTmodels import Activity, Milestone
 
+# Scheduler Functions
+from PERTscheduler import load_problem,executePERT_daycare,executePERT_excalibur
+
+
+####################
+########################################
+####################
+#
+# GLOBAL VARIABLES
+#
+####################
+#########################################
+####################
+
+# List of activities
+activities_input = []
+# List of milstones
+milestones = []
 
 ###############
-# SET UP UI
+#
+# Initialize GUI 
+#
 ###############
 
 # tk  root frame
@@ -36,25 +56,25 @@ tkapp.geometry('450x500')
 # bkg colour
 tkapp.configure(bg='SkyBlue1')
 
-
-
-# List of activities
-activities_input = []
-
-# List of milstones
-milestones = []
-
 # Variables that store USER  input in GUI
 name = StringVar(tkapp, value='A')
 dur = IntVar(tkapp)
 lab = IntVar(tkapp)
 
 
-
+####################
+########################################
+####################
+#
+# Tkinter custom WIDGETS
+#
+####################
+#########################################
+####################
 
 #######
 #
-# Checkbar for prereqs
+# Checkbar Widget for prereqs
 #
 # https://www.python-course.eu/tkinter_checkboxes.php
 #
@@ -74,15 +94,31 @@ class Checkbar(Frame):
    def state(self):
       return map((lambda var: var.get()), self.vars)
 
+
+
 ##############################
 #
 #      Helper Methods
 #
 ##############################
 
+######
+# Create a txt file based on inputs
+#
+#   to be called in add_activity()
+#
+######
+def write_txt_data():
+    text_file = open("Problems/PERT-input.txt", "w")
+    
+    for act in activities_input:
+        n = text_file.write(act.name+', '+ str(act.duration)+', '+str(act.labour))
+        for pred in act.predecessor:
+            n += ', '+pred.name
+        n += '\n' #end line with newline
 
-#return value of current activity name GUI input
 
+    text_file.close()
 
 ########
 #
@@ -93,39 +129,97 @@ class Checkbar(Frame):
 #
 #########
 def add_activity():
-    #set up activity creation
-    activity_start = Milestone()
-    activity_end = Milestone()
     # Create Activity object
-    activity_prep = Activity(name.get(), dur.get(), lab.get(), activity_start, activity_end)
+    print(prereq_boxes.state)
+    #activity_prep = Activity(name.get(), dur.get(), lab.get())
     #Add the newly created activity to list of dependants/prerequisites
-    activity_start.dependants.append(activity_prep)
-    activity_end.prerequisites.append(activity_prep)
+   
     # Add created activity to list 
     activities_input.append(activity_prep)
 
-    print('button pressed\n')
+    print('ADD ACTIVITY button pressed\n')
     print('NEW activity: '+name.get()+' '+str(dur.get())+' '+str(lab.get())+'\n')
+    
+    # !!! Writes activities currently in activity_inputs[]
+    #     to 'PERT-input.txt'
+    write_txt_data()
+
+########
+#
+# input --> string --> data.txt
+# dump input data into .txt file
+# call PERTscheduler.load_problem(filename) 
+#
+# Results in new window opening
+#
+#########
+def execute_PERT():
+    print('Evaluate PERT button pressed\n')
+
 
 ##########
 #
 #
 #
 ###########
-def update_prereqs():
-    prereqs_inputs.insert(name.get())
- 
- # function to open a new window 
-# on a button click
-def openPERT_windown():
-   pass
+def getActivityNames():
+    name_list = []
+    for activity in activities_input:
+        name_list.append(activity.__str__new(showname))
+    return name_list
+
+##########
+#
+#   reload checkback widget upon this call
+#
+###########
+def update_prereq_list():
+    pass
+
+##########
+#
+# Load Daycare
+#
+###########
+def load_daycare():
+    print('Opening PERT results window')
+    # Toplevel object which will 
+    # be treated as a new window
+    newWindow = Toplevel(tkapp)
+  
+    # sets the title of the
+    # Toplevel widget
+    newWindow.title("PERT EXECUTED")
+  
+    # sets the geometry of toplevel
+    newWindow.geometry("200x200")
+  
+    # A Label widget to show in toplevel
+    Label(newWindow, 
+          text ="~ Accoring to our calculation of PERT ~").pack()
+
+    Label(newWindow ,
+        text ='Lowest possible peak requirement: '
+            + 'VARIABLE lowest from PERTscheduler').pack() 
+    
+    Label(newWindow ,
+        text ='Schedules achieving lowest requirement (Activity, Start time):'
+            + 'SHOW critical path').pack()
+###########
+#
+# Load Excalibur
+#
+###########
+def load_excalibur():
+    pass
+
 ##########
 #
 #
 #
 ###########
-def openNewWindow():
-      
+def open_results_window():
+    print('Opening PERT results window')
     # Toplevel object which will 
     # be treated as a new window
     newWindow = Toplevel(tkapp)
@@ -149,8 +243,8 @@ def openNewWindow():
         text ='Schedules achieving lowest requirement (Activity, Start time):'
             + 'VARIABLE lowest from PERTscheduler').pack()
    
-
-
+      
+    
 
 
 
@@ -178,47 +272,9 @@ labTf = Entry(tkapp, textvariable=lab).place(x=175, y=150)
 
 # prereqs label
 prereqs_label = Label(tkapp, text='Prerequisites:', bg='grey').place(x=1, y=200)
-# listbox of activities currently in activities_input
 
-########
-
-
-#prereqs_inputs = Listbox(tkapp, listvariable=activities_input).
-prereq_box = Checkbar(tkapp, ['A', 'B']).place(x=175, y=200)
-
-
-
-########
-# labour label
-activity_counter = Label(tkapp, text='# of Activities inputed : '+str(len(activities_input)) , bg='grey').place(x=0, rely=0.9)
-
-
-
-
-#list box
-#var2 = StringVar()
-#var2.set((1,2,3,4))
-#lb =
-#############
-#
-# input task VIA entry textbox:
-#prereqs_var = StringVar(tkapp, value='A')
-#prereqTf = Entry(tkapp, textvariable=prereqs_var).place(x=175, y=200)
-#
-############
-
- 
-
-
-#list_items = [11,22,33,44]
-# for each items in a activities_input
-#for item in activities_input:
-#    lb.insert('end', item)
-
-#Listbox insert
-#lb.insert(1, 'first')
-#lb.insert(2, 'second')
-#lb.pack()
+#Check bar of activities that may be preceded
+prereq_boxes = Checkbar(tkapp, getActivityNames()).place(x=175, y=200)
 
 
 
@@ -234,15 +290,32 @@ add_activity_button = Button(tkapp, text=' + add activity ', width=10, height=1,
                              highlightbackground='green').place(relx=0.1,rely=0.7)
 
 # Schedule PERT BUTTON
-evaluate_button = Button(tkapp, height='2', text='Evaluate PERT', bg='gold',
+evaluate_button = Button(tkapp, height='2',command=execute_PERT, text='Evaluate PERT', bg='gold',
                          fg='white', highlightbackground='black').place(relx=0.6, rely=0.8)
 
 # Select Preset network BUTTON
-evaluate_button = Button(tkapp, height='2',width='15', command=openNewWindow(), text='Preset #1: Daycare', bg='gold',
+daycare_button = Button(tkapp, height='2',width='15', command=load_daycare(), text='Preset #1: Daycare', bg='pink',
                          fg='white', highlightbackground='black').place(x=300,y=10)
+
+# Select Preset network BUTTON
+excalibur_button = Button(tkapp, height='2',width='15', command=load_excalibur(), text='Preset #2: Excalibur', bg='gold',
+                         fg='white', highlightbackground='black').place(x=300,y=50)
 
 
 #############################
+
+
+
+
+
+
+
+
+
+# NUMBER OF ACTIVITIES INPUTED BY USER 
+activity_counter = Label(tkapp, text='# of Activities inputed : '+str(len(activities_input)) , bg='grey').place(x=0, rely=0.9)
+
+
 
 
 
