@@ -22,7 +22,8 @@
 
 
 # Contains models
-from PERTmodels import Activity, Milestone
+from PERTmodels import *
+
 
 
 
@@ -34,7 +35,6 @@ from PERTmodels import Activity, Milestone
 def load_problem(filename):
     # line number within input file being parsed
     lineno = 0
-
     # List of activities
     activities = []
 
@@ -46,6 +46,7 @@ def load_problem(filename):
 
         # Line format:
         # TASK, DURATION, LABOUR, PREREQUISITE_1, ... , PREREQUISITE_n
+
         #example:
         # A, 69, 3
         # B, 4, 1, A
@@ -83,9 +84,14 @@ def load_problem(filename):
                     if(activity.name == tokens[0]):
                         print('Error on line ' + str(lineno) + ': Activity redefined \"' + line.strip() + '\"')
                         return False
+                
+                
+                
                 ##########################
                 #
-                # Make a list of prerequisites for this activity, 
+                # Make a list of prerequisites 
+                # 
+                # for this activity, 
                 # and make sure they have been defined previously
                 #
                 ##########################
@@ -114,11 +120,14 @@ def load_problem(filename):
                 activity_start.dependants.append(activity)
                 activity_end.prerequisites.append(activity)
                 activities.append(activity)
+
+
+
                 
                 ##########################
                 #
                 # Find the prerequite milestones for this activity, 
-                # and link them with dummy activities to activity_start 
+                # then link them with dummy activities to activity_start 
                 #
                 ##########################
                 for prerequisite in prerequisites:
@@ -134,8 +143,9 @@ def load_problem(filename):
                 milestones.append(activity_end)
 
                 # end of for loop (parsing lines)
-    
-    
+     
+
+     
     # Merge all milestones with the exact same prerequisites together
     merged = True
     while(merged):
@@ -143,8 +153,7 @@ def load_problem(filename):
         merged = False
         for milestone in milestones:
             for equivalent in milestones:
-                # Check if milestone and equivalent can be merged
-                if(can_merge_milestones(milestone, equivalent)):
+                if(milestone.can_merge_milestones(equivalent)):
                     # Merge the dependant activities of the two milestones
                     for dependant in equivalent.dependants:
                         if(dependant not in milestone.dependants):
@@ -159,17 +168,7 @@ def load_problem(filename):
                                 remaining_dependants.append(activity)
                         prerequisite.predecessor.dependants = remaining_dependants
                     remove = equivalent
-                    break 
-                # Check if milestone and equivalent are both end points, if they are merge them
-                elif(milestone != equivalent and len(milestone.dependants) == 0 and len(equivalent.dependants) == 0):
-                    # Redirect the prerequisite activities of equivalent to milestone and add them to milestone
-                    for prerequisite in equivalent.prerequisites:
-                        milestone.prerequisites.append(prerequisite)
-                        prerequisite.successor = milestone
-                    
-                    # Get rid of equivalent                  
-                    remove = equivalent
-                    break 
+                    break      
             
             if(remove != None):
                 break      
@@ -401,13 +400,15 @@ def resource_level(milestones):
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
 # The code below here is the main execution
+#
+#  
 # 
 #
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def executePERT():
+def executePERT_daycare():
 
-    data = load_problem('Problems/Lab6_Excalibur.txt')
+    data = load_problem('Problems/Lab6_Daycare.txt')
 
     if(data == False):
         print('An error occured while loading the problem')
@@ -430,6 +431,9 @@ def executePERT():
             print(schedule)
 
 
+def executePERT_excalibur():
+    pass
+
 
 ############################################
 ############################################
@@ -442,7 +446,7 @@ def executePERT():
 ############################################
 ############################################
 ############################################
-executePERT()
+executePERT_daycare()
 
 #end
     
