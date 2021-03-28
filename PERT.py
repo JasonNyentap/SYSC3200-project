@@ -327,6 +327,15 @@ def resource_level(milestones):
                 activities.append(dependant)
                 if(dependant.slack != 0):
                     slack_activities.append(dependant)
+    
+    # If there are no slack activities, then there is only one possible schedule    
+    if(len(slack_activities) == 0):
+        resources = calc_labour(activities)
+        activity_schedule = []
+        for activity in activities:
+            activity_schedule.append((activity.name, activity.predecessor.earliest))
+            
+        return (resources, [activity_schedule])
         
     # Exhaustively search for the lowest resource schedule by incrementing the delay time for each activity between 0 and free_slack inclusive
     lowest_resource = float('inf')
@@ -391,9 +400,9 @@ def draw_graph(milestones, output_file):
     
 # The code below here is for testing
 problem_file = 'Problems/Assignment3.txt'
-#problem_file = 'Problems/Lab6_Daycare.txt'
-#problem_file = 'Problems/Lab6_Excalibur.txt'
-#problem_file = 'Problems/Simple.txt'
+# problem_file = 'Problems/Lab6_Daycare.txt'
+# problem_file = 'Problems/Lab6_Excalibur.txt'
+# problem_file = 'Problems/Simple.txt'
 data = load_problem(problem_file)
 if(data == False):
     print('An error occured while loading the problem')

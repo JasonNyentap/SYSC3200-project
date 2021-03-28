@@ -347,6 +347,15 @@ def resource_level(milestones):
                 activities.append(dependant)
                 if(dependant.slack != 0):
                     slack_activities.append(dependant)
+    
+    # If there are no slack activities, then there is only one possible schedule    
+    if(len(slack_activities) == 0):
+        resources = calc_labour(activities)
+        activity_schedule = []
+        for activity in activities:
+            activity_schedule.append((activity.name, activity.predecessor.earliest))
+            
+        return (resources, [activity_schedule])
         
     # Exhaustively search for the lowest resource schedule by incrementing the delay time for each activity between 0 and free_slack inclusive
     lowest_resource = float('inf')
@@ -360,7 +369,7 @@ def resource_level(milestones):
         if(to_increment < len(slack_activities)):
             slack_activities[to_increment].delay = (slack_activities[to_increment].delay + 1) % (slack_activities[to_increment].slack + 1)
             to_increment = 0
-            
+          
             # Check that this schedule is valid
             valid = True
             for milestone in milestones:
