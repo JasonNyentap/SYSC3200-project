@@ -1,3 +1,10 @@
+create_diagram = True
+try:
+    import pydot
+except:
+    create_diagram = False
+    print('\nError: Missing dependencies. Calculations will still be performed, but no PERT diagram created.\n')
+
 # Represents an activity in a PERT diagram
 class Activity:
     def __init__(self, name, duration, labour, predecessor, successor):
@@ -333,7 +340,7 @@ def resource_level(milestones):
         if(to_increment < len(slack_activities)):
             slack_activities[to_increment].delay = (slack_activities[to_increment].delay + 1) % (slack_activities[to_increment].slack + 1)
             to_increment = 0
-            
+          
             # Check that this schedule is valid
             valid = True
             for milestone in milestones:
@@ -368,14 +375,33 @@ def resource_level(milestones):
         else:
             return (lowest_resource, schedules)
 
+# Draws the directed graph representing the PERT problem and outputs it to a png file
+def draw_graph(milestones, output_file):
+    graph = pydot.Dot('PERT', graph_type='digraph')
+    
+    for milestone in milestones:
+        milestone_color = 'red' if(milestone.slack == 0)else 'black'
+        graph.add_node(pydot.Node(milestones.index(milestone), color=milestone_color, label='TE: ' + str(milestone.earliest) + ', TL: ' + str(milestone.latest) + ', S: ' + str(milestone.slack)))
+        for dependant in milestone.dependants:
+            edge_label = '  ' + dependant.name + ' [ S: ' + str(dependant.slack) + ', FS: ' + str(dependant.free_slack) + ' ]  '
+            edge_color = 'red' if(dependant.slack == 0 and dependant.predecessor.slack == 0 and dependant.successor.slack == 0)else 'black'
+            graph.add_edge(pydot.Edge(milestones.index(milestone), milestones.index(dependant.successor), color=edge_color, label=edge_label))
+            
+    graph.write_png(output_file + '.png')
+    
 # The code below here is for testing
-data = load_problem('Problems/Assignment3.txt')
+problem_file = 'Problems/Assignment3.txt'
+#problem_file = 'Problems/Lab6_Daycare.txt'
+#problem_file = 'Problems/Lab6_Excalibur.txt'
+#problem_file = 'Problems/Simple.txt'
+data = load_problem(problem_file)
 if(data == False):
     print('An error occured while loading the problem')
 else:
-    print('[ Problem milestones and activities ]')
-    for milestone in data:
-        print(str(milestone))
+    if(not create_diagram):
+        print('[ Problem milestones and activities ]')
+        for milestone in data:
+            print(str(milestone))
 
     print('[ Critical path activities ]')    
     for activity in critical_path(data):
@@ -388,3 +414,5 @@ else:
     for schedule in schedules:
         print(schedule)
     
+    if(create_diagram):
+        draw_graph(data, problem_file)
