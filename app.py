@@ -82,7 +82,7 @@ activity_counter = Label(tkapp, text='# of Activities inputed : '+str(len(activi
 #
 #######
 class Checkbar(Frame):
-   def __init__(self, parent=None, picks=[], side=LEFT, anchor=W):
+    def __init__(self, parent=None, picks=[], side=LEFT, anchor=W):
       
       Frame.__init__(self, parent)
       
@@ -93,8 +93,14 @@ class Checkbar(Frame):
          chk = Checkbutton(self, text=pick, variable=var, bg='black')
          chk.pack(side=side, anchor=anchor, expand=YES)
          self.vars.append(var)
-   def state(self):
-      return map((lambda var: var.get()), self.vars)
+
+    def state(self):
+        return map((lambda var: var.get()), self.vars)
+
+    def setPicks(activities):
+        self.vars = activities
+
+
 
 
 
@@ -151,6 +157,9 @@ def add_activity():
     # !!! Writes activities currently in activity_inputs[]
     #     to 'PERT_input.txt'
     write_txt_data()
+    
+    #Update available prereqs
+    update_prereq_list()
 
 
 
@@ -175,7 +184,7 @@ def execute_PERT():
 def getActivityNames():
     name_list = []
     for activity in activities_input:
-        name_list.append(activity.__str__new(showname))
+        name_list.append(activity.name)
     return name_list
 
 ##########
@@ -184,7 +193,7 @@ def getActivityNames():
 #
 ###########
 def update_prereq_list():
-    pass
+    prereq_boxes = Checkbar(tkapp, getActivityNames()).place(x=175, y=200)
 
 ##########
 #
@@ -284,7 +293,7 @@ labTf = Entry(tkapp, textvariable=lab).place(x=175, y=150)
 # prereqs label
 prereqs_label = Label(tkapp, text='Prerequisites:', bg='grey').place(x=1, y=200)
 #Check bar of activities that may be preceded
-prereq_boxes = Checkbar(tkapp, getActivityNames()).place(x=175, y=200)
+#prereq_boxes = Checkbar(tkapp, getActivityNames()).place(x=175, y=200)
 
 
 
