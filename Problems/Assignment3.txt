@@ -1,3 +1,6 @@
+!Comments here are the same as LINDO
+!TASK, DURATION, LABOUR, PREREQUISITE_1, ... , PREREQUISITE_n
+
 AB, 2, 2
 BC, 4, 2, AB
 CD, 4, 2, BC

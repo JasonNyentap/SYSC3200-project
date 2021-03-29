@@ -20,7 +20,7 @@ from tkinter import *
 from PERTmodels import Activity, Milestone, Activity_Input
 
 # Scheduler Functions
-from PERTscheduler import load_problem,executePERT_daycare,executePERT_excalibur
+#from PERTscheduler import load_problem#,executePERT_daycare,executePERT_excalibur
 
 
 ####################
@@ -61,6 +61,8 @@ name = StringVar(tkapp, value='A')
 dur = IntVar(tkapp)
 lab = IntVar(tkapp)
 
+# NUMBER OF ACTIVITIES INPUTED BY USER (update on button press)
+activity_counter = Label(tkapp, text='# of Activities inputed : '+str(len(activities_input)) , bg='grey').place(x=0, rely=0.9)
 
 ####################
 ########################################
@@ -109,10 +111,10 @@ class Checkbar(Frame):
 #
 ######
 def write_txt_data():
-    text_file = open("Problems/PERT-input.txt", "w")
+    text_file = open("Problems/PERT_input.txt", "w")
     
     for act in activities_input:
-        n = text_file.write(act.name+', '+ str(act.duration)+', '+str(act.labour))
+        n = text_file.write(act.name+', '+ str(act.duration)+', '+str(act.labour) +'\n')
         
         # must call state of Checkframe state toString 
         #for pred in act.predecessor:
@@ -135,15 +137,22 @@ def add_activity():
     activity_prep = Activity_Input(name.get(), dur.get(), lab.get(), Milestone())
     #Add the newly created activity to list of dependants/prerequisites
    
-    # Add created activity to list 
+    # Add created activity to LIST
     activities_input.append(activity_prep)
 
-    print('ADD ACTIVITY button pressed\n')
-    print('NEW activity: '+name.get()+' '+str(dur.get())+' '+str(lab.get())+'\n')
+    # UPDATE # of activities inputed COUNTER
+    #activity_counter.config(text(str(len(activities_input))))
     
+
+    print('ADD ACTIVITY button pressed\n')
+    print('NEW activity: '+activity_prep.name+' '+str(activity_prep.duration)+' '+str(activity_prep.labour)+'\n')
+    
+
     # !!! Writes activities currently in activity_inputs[]
-    #     to 'PERT-input.txt'
+    #     to 'PERT_input.txt'
     write_txt_data()
+
+
 
 ########
 #
@@ -219,6 +228,7 @@ def load_excalibur():
 #
 #
 ###########
+
 def open_results_window():
     print('Opening PERT results window')
     # Toplevel object which will 
@@ -273,7 +283,6 @@ labTf = Entry(tkapp, textvariable=lab).place(x=175, y=150)
 
 # prereqs label
 prereqs_label = Label(tkapp, text='Prerequisites:', bg='grey').place(x=1, y=200)
-
 #Check bar of activities that may be preceded
 prereq_boxes = Checkbar(tkapp, getActivityNames()).place(x=175, y=200)
 
@@ -310,11 +319,6 @@ excalibur_button = Button(tkapp, height='2',width='15', command=load_excalibur()
 
 
 
-
-
-
-# NUMBER OF ACTIVITIES INPUTED BY USER 
-activity_counter = Label(tkapp, text='# of Activities inputed : '+str(len(activities_input)) , bg='grey').place(x=0, rely=0.9)
 
 
 
