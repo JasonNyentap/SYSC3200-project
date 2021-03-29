@@ -1,44 +1,151 @@
-
-
-#models
-
-#############################################
+##################
 #
-# Represents an activity in a PERT diagram
-# 
+# PERT functions
 #
-#############################################
-class Activity:
-    
-    # Default constructor
-    def __init__(self, name, duration, labour, predecessor, successor):
+###################
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+# Calculate the maximum required labour 
+# given a list of Activities
+#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+def calc_labour(activities):
+    time = 0
+    done = False
+    worst_labour = 0
+    while(not done):
+        done = True
+        labour = 0
+        for activity in activities:
+            started = activity.predecessor.earliest + activity.delay
+            ended = started + activity.duration
+            if(time >= started and time < ended):
+                done = False
+                labour += activity.labour
         
-        # Activity attributes:
+        worst_labour = max(worst_labour, labour)
+        time += 1
+    
+    return worst_labour
+
+
+
+
+
+#######################
+#
+#   Models
+#
+#######################
+
+class Activity:
+
+    #################################
+    # Default constructor
+    #################################
+    def __init__(self):
+         # Activity attributes:
+        # Name of this activity, or nothing if it is a dummy
+        self.name = 'No-name' 
+        # Time to complete this activity
+        self.duration = 1 
+        # Milestone this activity starts at
+        self.predecessor = Milestone() 
+        # Milestone this activity ends at
+        self.successor = Milestone() 
+        # Total slack time for this activity
+        self.slack = 0 
+        # Free slack time for this activity
+        self.free_slack = 0 
+        # Amount of labour needed to complete this activity
+        self.labour = 1 
+        # How long to wait before starting the activity (within free_slack)
+        self.delay = 0
+
+    ###############################################
+    # Named Activity constructor (w/o predecessor)
+    ###############################################
+    def __init__(self, name, duration, labour):
+
+         # Activity attributes:
 
         # Name of this activity, or nothing if it is a dummy
         self.name = name 
-
         # Time to complete this activity
         self.duration = duration 
+        # Amount of labour needed to complete this activity
+        self.labour = labour
 
+        # Milestone this activity starts at
+        self.predecessor = Milestone() 
+        # Milestone this activity ends at
+        self.successor = Milestone() 
+        # Total slack time for this activity
+        self.slack = 0 
+        # Free slack time for this activity
+        self.free_slack = 0 
+        # How long to wait before starting the activity (within free_slack)
+        self.delay = 0
+
+    ###############################################
+    # Named Activity constructor (w/ predecessor)
+    ###############################################
+    def __init__(self, name, duration, labour, predecessor):
+
+         # Activity attributes:
+
+        # Name of this activity, or nothing if it is a dummy
+        self.name = name 
+        # Time to complete this activity
+        self.duration = duration  
+        # Amount of labour needed to complete this activity
+        self.labour = labour
         # Milestone this activity starts at
         self.predecessor = predecessor 
 
         # Milestone this activity ends at
-        self.successor = successor 
-        
+        self.successor = Milestone() 
         # Total slack time for this activity
         self.slack = 0 
-        
         # Free slack time for this activity
         self.free_slack = 0 
-        
-        # Amount of labour needed to complete this activity
-        self.labour = labour 
-        
         # How long to wait before starting the activity (within free_slack)
         self.delay = 0
+
+    #################################
+    # Fully Paremtrized constructor (PERTscheduler)
+    #################################
+    #def __init__(self, name, duration, labour, predecessor, successor):
+    def __init__(self, *args):
         
+        # Every activity should be initialized w these 3 fields:
+        self.name = args[0] 
+        # Time to complete this activity
+        self.duration = args[1] 
+        # Amount of labour needed to complete this activity
+        self.labour = args[2] 
+     
+            
+        #contructor w predecessor and successor fields
+        if len(args) == 5:
+            # Activity attributes:
+
+            # Name of this activity, or nothing if it is a dummy
+            
+            # Milestone this activity starts at
+            self.predecessor = args[3] 
+            # Milestone this activity ends at
+            self.successor = args[4]
+
+
+        # Total slack time for this activity
+        self.slack = 0 
+        # Free slack time for this activity
+        self.free_slack = 0 
+        # How long to wait before starting the activity (within free_slack)
+        self.delay = 0
+
+    
     
     def __str__(self):
         if(self.name == ''):
@@ -51,40 +158,29 @@ class Activity:
             res += ', FS: ' + str(self.free_slack)
             res += ']'
             return res
-
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    #
-    # Calculate the maximum required labour 
-    # given a list of Activities
-    #
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    def calc_labour(activities):
-        time = 0
-        done = False
-        worst_labour = 0
-        while(not done):
-            done = True
-            labour = 0
-            for activity in activities:
-                started = activity.predecessor.earliest + activity.delay
-                ended = started + activity.duration
-                if(time >= started and time < ended):
-                    done = False
-                    labour += activity.labour
-            
-            worst_labour = max(worst_labour, labour)
-            time += 1
         
-        return worst_labour
+    def __str__new(self, command):
+        if(self.name == ''):
+            return 'No-name'
+        return self.name
 
+class Activity_Input:
+    def __init__(self, name, duration, labour, predecessor):
+        # Name of this activity, or nothing if it is a dummy
+        self.name = name 
+        # Time to complete this activity
+        self.duration = duration  
+        # Amount of labour needed to complete this activity
+        self.labour = labour
+        # Milestone this activity starts at
+        self.predecessor = predecessor 
+  
 
-
-
-#############################################
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # 
 # Class Milestone Represents a milestone activity in a PERT diagram  
 # 
-#############################################
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 class Milestone(Activity):
     def __init__(self):
@@ -109,6 +205,8 @@ class Milestone(Activity):
     # 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     def __str__(self):
+
+        
         res = 'Milestone [TE: ' + str(self.earliest) + ', TL:' + str(self.latest) + ', S:' + str(self.slack) + ']\n'
         
         res += '    Prerequisites:\n'
@@ -170,3 +268,40 @@ class Milestone(Activity):
                 return False
         
         return True
+
+
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Accessor Methods
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # def getName():
+    #     return self.name
+
+
+    # def getDuration():
+    #     return self.duration
+    
+    # def getPredecessors():
+    #     return self.predecessor
+
+    # def getLabour():
+    #         pass
+
+
+        # Milestone this activity starts at
+        # self.predecessor = predecessor
+
+        # # Milestone this activity ends at
+        # self.successor = successor 
+        
+        # # Total slack time for this activity
+        # self.slack = 0 
+        
+        # # Free slack time for this activity
+        # self.free_slack = 0 
+        
+        # # Amount of labour needed to complete this activity
+        # self.labour = labour 
+        
+        # # How long to wait before starting the activity (within free_slack)
+        # self.delay = 0
+

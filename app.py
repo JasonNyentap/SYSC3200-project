@@ -17,7 +17,7 @@ from tkinter import *
 # from PERTscheduler import *
 
 # Import node classes
-from PERTmodels import Activity, Milestone
+from PERTmodels import Activity, Milestone, Activity_Input
 
 # Scheduler Functions
 from PERTscheduler import load_problem,executePERT_daycare,executePERT_excalibur
@@ -33,9 +33,9 @@ from PERTscheduler import load_problem,executePERT_daycare,executePERT_excalibur
 #########################################
 ####################
 
-# List of activities
+# List of Activity() objects to hold state info 
 activities_input = []
-# List of milstones
+# List of type Milstone()
 milestones = []
 
 ###############
@@ -113,9 +113,11 @@ def write_txt_data():
     
     for act in activities_input:
         n = text_file.write(act.name+', '+ str(act.duration)+', '+str(act.labour))
-        for pred in act.predecessor:
-            n += ', '+pred.name
-        n += '\n' #end line with newline
+        
+        # must call state of Checkframe state toString 
+        #for pred in act.predecessor:
+         #   n += ', '+pred.name
+        #n += '\n' #end line with newline
 
 
     text_file.close()
@@ -129,9 +131,8 @@ def write_txt_data():
 #
 #########
 def add_activity():
-    # Create Activity object
-    print(prereq_boxes.state)
-    #activity_prep = Activity(name.get(), dur.get(), lab.get())
+    # Create Activity object from GUI contents
+    activity_prep = Activity_Input(name.get(), dur.get(), lab.get(), Milestone())
     #Add the newly created activity to list of dependants/prerequisites
    
     # Add created activity to list 
@@ -262,7 +263,7 @@ nameTf = Entry(tkapp, textvariable=name).place(x=175, y=50)
 # duration label
 dur_label = Label(tkapp, text='Duration:', bg='grey').place(x=1, y=100)
 # duration input
-durTf = Entry(tkapp, textvariable=str(dur.get)).place(x=175, y=100)
+durTf = Entry(tkapp, textvariable=dur).place(x=175, y=100)
 
 # labour label
 lab_label = Label(tkapp, text='Labour:', bg='grey').place(x=0, y=150)
