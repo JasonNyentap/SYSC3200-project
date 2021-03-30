@@ -3,8 +3,8 @@
 block_cipher = None
 
 
-a = Analysis(['..\\PERT.py'],
-             pathex=['D:\\Documents\\UNIVERSITY\\2020-2021\\Winter 2021\\SYSC3200\\SYSC3200-project\\PyInstaller'],
+a = Analysis(['..\\PERT_Solver.py'],
+             pathex=['D:\\Documents\\UNIVERSITY\\2020-2021\\Winter 2021\\SYSC3200\\SYSC3200-project\\PERT_SimpleUI\\PyInstaller'],
              binaries=[],
              datas=[],
              hiddenimports=[],
@@ -21,12 +21,12 @@ exe = EXE(pyz,
           a.scripts,
           [],
           exclude_binaries=True,
-          name='PERT',
+          name='PERT_Solver',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          console=True )
+          console=False )
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
@@ -34,4 +34,4 @@ coll = COLLECT(exe,
                strip=False,
                upx=True,
                upx_exclude=[],
-               name='PERT')
+               name='PERT_Solver')
