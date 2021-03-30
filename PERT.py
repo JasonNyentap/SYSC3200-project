@@ -1,9 +1,5 @@
-create_diagram = True
-try:
-    import pydot
-except:
-    create_diagram = False
-    print('\nError: Missing dependencies. Calculations will still be performed, but no PERT diagram created.\n')
+import sys
+import pygraphviz as pgv
 
 # Represents an activity in a PERT diagram
 class Activity:
@@ -386,42 +382,50 @@ def resource_level(milestones):
 
 # Draws the directed graph representing the PERT problem and outputs it to a png file
 def draw_graph(milestones, output_file):
-    graph = pydot.Dot('PERT', graph_type='digraph')
+    graph = pgv.AGraph(strict=False, directed=True)
     
     for milestone in milestones:
         milestone_color = 'red' if(milestone.slack == 0)else 'black'
-        graph.add_node(pydot.Node(milestones.index(milestone), color=milestone_color, label='TE: ' + str(milestone.earliest) + ', TL: ' + str(milestone.latest) + ', S: ' + str(milestone.slack)))
+        graph.add_node(milestones.index(milestone), color=milestone_color, label='TE: ' + str(milestone.earliest) + ', TL: ' + str(milestone.latest) + ', S: ' + str(milestone.slack))
         for dependant in milestone.dependants:
             edge_label = '  ' + dependant.name + ' [ S: ' + str(dependant.slack) + ', FS: ' + str(dependant.free_slack) + ' ]  '
             edge_color = 'red' if(dependant.slack == 0 and dependant.predecessor.slack == 0 and dependant.successor.slack == 0)else 'black'
-            graph.add_edge(pydot.Edge(milestones.index(milestone), milestones.index(dependant.successor), color=edge_color, label=edge_label))
+            graph.add_edge(milestones.index(milestone), milestones.index(dependant.successor), color=edge_color, label=edge_label)
             
-    graph.write_png(output_file + '.png')
-    
-# The code below here is for testing
-problem_file = 'Problems/Assignment3.txt'
-# problem_file = 'Problems/Lab6_Daycare.txt'
-# problem_file = 'Problems/Lab6_Excalibur.txt'
-# problem_file = 'Problems/Simple.txt'
-data = load_problem(problem_file)
-if(data == False):
-    print('An error occured while loading the problem')
-else:
-    if(not create_diagram):
+    graph.draw(output_file + '.png', prog='dot')
+
+# Program entry point   
+if __name__ == "__main__":
+    # Check that input file argument was given
+    if(len(sys.argv) != 2):
+        print('Incorrect number of arguments')
+        print('Usage: PERT <inputfile.txt>')
+        sys.exit()
+        
+    try:
+        data = load_problem(sys.argv[1])
+    except:
+        print('The input file could not be loaded.')
+        sys.exit()
+   
+    if(data == False):
+        print('An error occured while loading the problem')
+        sys.exit()
+    else:
         print('[ Problem milestones and activities ]')
         for milestone in data:
             print(str(milestone))
 
-    print('[ Critical path activities ]')    
-    for activity in critical_path(data):
-        print(str(activity))
+        print('[ Critical path activities ]')    
+        for activity in critical_path(data):
+            print(str(activity))
+            
+        print('\n[ Labour requirements ]')        
+        lowest, schedules = resource_level(data)
+        print('Lowest possible peak requirement: ' + str(lowest))
+        print('Schedules achieving lowest requirement (Activity, Start time):')
+        for schedule in schedules:
+            print(schedule)
         
-    print('\n[ Labour requirements ]')        
-    lowest, schedules = resource_level(data)
-    print('Lowest possible peak requirement: ' + str(lowest))
-    print('Schedules achieving lowest requirement (Activity, Start time):')
-    for schedule in schedules:
-        print(schedule)
-    
-    if(create_diagram):
-        draw_graph(data, problem_file)
+        draw_graph(data, sys.argv[1])
+        
